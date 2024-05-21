@@ -31,8 +31,10 @@ public class EmployeesController : ControllerBase
 
     [HttpPost]
     public async Task<IActionResult> CreateEmployeeForCompany(Guid companyId, [FromBody] EmployeeForCreationDto employee)
-        {
+    {
+        // Instead of these validation checks we can use ValidationFilterAttribute
         if (employee is null)
+
             return BadRequest("EmployeeForCreationDto object is null");
 
         if (!ModelState.IsValid)
@@ -54,6 +56,7 @@ public class EmployeesController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> UpdateEmployeeForCompany(Guid companyId, Guid id, [FromBody] EmployeeForUpdateDto employee)
     {
+        // Instead of these validation checks we can use ValidationFilterAttribute
         if (employee is null)
             return BadRequest("EmployeeForUpdateDto object is null");
 

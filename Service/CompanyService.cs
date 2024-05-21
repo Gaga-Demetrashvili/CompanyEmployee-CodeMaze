@@ -45,10 +45,7 @@ namespace Service
 
         public async Task<CompanyDto> GetCompanyAsync(Guid companyId, bool trackChanges)
         {
-            var company = await _repositoryManager.Company.GetCompanyAsync(companyId, trackChanges);
-            //Check if the company is null
-            if (company is null)
-                throw new CompanyNotFoundException(companyId);
+            var company = await GetCompanyAndCheckIfItExists(companyId, trackChanges);
 
             var companyDto = _mapper.Map<CompanyDto>(company);
 
@@ -105,9 +102,7 @@ namespace Service
 
         public async Task DeleteCompanyAsync(Guid companyId, bool trackChanges)
         {
-            var company = await _repositoryManager.Company.GetCompanyAsync(companyId, trackChanges);
-            if (company is null)
-                throw new CompanyNotFoundException(companyId);
+            var company = await GetCompanyAndCheckIfItExists(companyId, trackChanges);
 
             _repositoryManager.Company.DeleteCompany(company);
            await  _repositoryManager.SaveAsync();
@@ -115,12 +110,19 @@ namespace Service
 
         public async Task UpdateCompanyAsync(Guid companyId, CompanyForUpdateDto companyForUpdate, bool trackChanges)
         {
-            var companyEntity = await _repositoryManager.Company.GetCompanyAsync(companyId, trackChanges);
-            if (companyEntity is null)
-                throw new CompanyNotFoundException(companyId);
+            var companyEntity = await GetCompanyAndCheckIfItExists(companyId, trackChanges);
 
             _mapper.Map(companyForUpdate, companyEntity);
             await _repositoryManager.SaveAsync();
+        }
+
+        private async Task<Company?> GetCompanyAndCheckIfItExists(Guid companyId, bool trackChanges)
+        {
+            var company = await _repositoryManager.Company.GetCompanyAsync(companyId, trackChanges);
+            //Check if the company is null
+            if (company is null)
+                throw new CompanyNotFoundException(companyId);
+            return company;
         }
     }
 }
