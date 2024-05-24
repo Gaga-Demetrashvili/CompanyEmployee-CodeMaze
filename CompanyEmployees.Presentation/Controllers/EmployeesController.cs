@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
 using Shared.DataTransferObjects;
+using Shared.RequestFeatures;
+using System.Text.Json;
 
 namespace CompanyEmployees.Presentation.Controllers;
 
@@ -14,11 +16,16 @@ public class EmployeesController : ControllerBase
     public EmployeesController(IServiceManager service) => _service = service;
 
     [HttpGet]
-    public async Task<IActionResult> GetEmployeesFromCompany(Guid companyId)
+    public async Task<IActionResult> GetEmployeesFromCompany(Guid companyId,
+        [FromQuery] EmployeeParameters employeeParameters)
     {
-        var employees = await _service.EmployeeService.GetEmployeesAsync(companyId, trackChanges: false);
+        var pagedResult = await _service.EmployeeService.GetEmployeesAsync(companyId, 
+            employeeParameters, trackChanges: false);
 
-        return Ok(employees);
+        Response.Headers.Add("X-Pagination",
+            JsonSerializer.Serialize(pagedResult.metadata));
+
+        return Ok(pagedResult.employees);
     }
 
     [HttpGet("{id:guid}", Name = "GetEmployeeForCompany")]
@@ -34,7 +41,6 @@ public class EmployeesController : ControllerBase
     {
         // Instead of these validation checks we can use ValidationFilterAttribute
         if (employee is null)
-
             return BadRequest("EmployeeForCreationDto object is null");
 
         if (!ModelState.IsValid)
