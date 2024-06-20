@@ -55,6 +55,8 @@ namespace CompanyEmployees.Extensions
                 {
                     systemTextJsonOutputFormatter.SupportedMediaTypes
                     .Add("application/vnd.codemaze.hateoas+json");
+                    systemTextJsonOutputFormatter.SupportedMediaTypes
+                    .Add("application/vnd.codemaze.apiroot+json");
                 }
 
                 var xmlOutputFormatter = config.OutputFormatters
@@ -64,6 +66,8 @@ namespace CompanyEmployees.Extensions
                 {
                     xmlOutputFormatter.SupportedMediaTypes
                     .Add("application/vnd.codemaze.hateoas+xml");
+                    xmlOutputFormatter.SupportedMediaTypes
+                   .Add("application/vnd.codemaze.apiroot+xml");
                 }
             });
         }

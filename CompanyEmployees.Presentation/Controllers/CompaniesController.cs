@@ -14,7 +14,7 @@ public class CompaniesController : ControllerBase
 
     public CompaniesController(IServiceManager service) => _service = service;
 
-    [HttpGet]
+    [HttpGet(Name = "GetCompanies")]
     public async Task<IActionResult> GetCompanies()
     {
         // We do not need this since we added built in Global Error Handling Middleware
@@ -44,7 +44,7 @@ public class CompaniesController : ControllerBase
         return Ok(company);
     }
 
-    [HttpPost]
+    [HttpPost(Name = "CreateCompany")]
     [ServiceFilter(typeof(ValidationFilterAttribute))]
     public async Task<IActionResult> CreateCompany([FromBody] CompanyForCreationDto company)
     {
