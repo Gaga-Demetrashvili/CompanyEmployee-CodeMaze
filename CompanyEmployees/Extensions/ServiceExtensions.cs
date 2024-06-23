@@ -1,6 +1,7 @@
 ﻿using CompanyEmployees.Presentation.Controllers;
 using Contracts;
 using LoggerService;
+using Marvin.Cache.Headers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Versioning;
@@ -89,5 +90,19 @@ namespace CompanyEmployees.Extensions
                 }
             );
         }
+
+        public static void ConfigureResponseCaching(this IServiceCollection services) => services.AddResponseCaching();
+
+        public static void ConfigureHttpCacheHeaders(this IServiceCollection services) => services.AddHttpCacheHeaders(
+                (expirationOpt) =>
+                {
+                    expirationOpt.MaxAge = 65;
+                    expirationOpt.CacheLocation = CacheLocation.Private;
+                },
+                (validationOpt) =>
+                {
+                    validationOpt.MustRevalidate = true;
+                } 
+            );
     }
 }
