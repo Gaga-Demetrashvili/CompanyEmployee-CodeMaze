@@ -4,7 +4,6 @@ using Entities.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Service.Contracts;
-using Shared.DataTransferObjects;
 
 namespace Service;
 
