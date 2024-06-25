@@ -11,6 +11,7 @@ namespace CompanyEmployees.Presentation.Controllers;
 //[ApiVersion("1.0")]
 [Route("api/companies")]
 [ApiController]
+[Authorize]
 //[ResponseCache(CacheProfileName = "120SecondsDuration")]
 public class CompaniesController : ControllerBase
 {
@@ -19,7 +20,8 @@ public class CompaniesController : ControllerBase
     public CompaniesController(IServiceManager service) => _service = service;
 
     [HttpGet(Name = "GetCompanies")]
-    [Authorize]
+    //[Authorize]
+    [Authorize(Roles = "Manager")]
     public async Task<IActionResult> GetCompanies()
     {
         // We do not need this since we added built in Global Error Handling Middleware
