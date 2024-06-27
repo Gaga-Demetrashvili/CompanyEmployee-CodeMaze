@@ -1,6 +1,7 @@
 ﻿using AspNetCoreRateLimit;
 using CompanyEmployees.Presentation.Controllers;
 using Contracts;
+using Entities.ConfigurationModels;
 using Entities.Models;
 using LoggerService;
 using Marvin.Cache.Headers;
@@ -148,9 +149,15 @@ namespace CompanyEmployees.Extensions
             .AddDefaultTokenProviders();
         }
 
+        // We pass Configuration object from the caller method, because this processes happen during service registration, before services are built by builder.Build() method.
+        // Because of this we can't get required services via Dependency Injection in this class. Also it is static class, which has parameterless constructor
+        // and is called automatically whenever something is needed from this class (ex: property or method).
+        // Well, to be precise, we can use the BuildServiceProvider method to build a service provider containing all the services from the provided IServiceCollection, and thus being able to access the required service. But if you do that, you will create one more list of singleton services, which can be quite expensive depending on the size of your application. So, you should be careful with this method.
         public static void ConfigureJWT(this IServiceCollection services, IConfiguration configuration)
         {
-            var jwtSettings = configuration.GetSection("JWTSettings");
+            var jwtConfiguration = new JwtConfiguration();
+            configuration.Bind(jwtConfiguration.Section, jwtConfiguration);
+
             var secretKey = Environment.GetEnvironmentVariable("SECRET");
 
             services.AddAuthentication(opt =>
@@ -167,11 +174,14 @@ namespace CompanyEmployees.Extensions
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
 
-                    ValidIssuer = jwtSettings["validIssuer"],
-                    ValidAudience = jwtSettings["validAudience"],
+                    ValidIssuer = jwtConfiguration.ValidIssuer,
+                    ValidAudience = jwtConfiguration.ValidAudience,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
                 };
             });
         }
+
+        public static void AddJwtConfiguration(this IServiceCollection services, IConfiguration configuration) =>
+            services.Configure<JwtConfiguration>(configuration.GetSection("JwtSettings"));
     }
 }
