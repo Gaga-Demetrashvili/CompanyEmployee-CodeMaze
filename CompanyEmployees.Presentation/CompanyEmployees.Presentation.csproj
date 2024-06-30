@@ -18,6 +18,12 @@
 		<ProjectReference Include="..\Service.Contracts\Service.Contracts.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <None Update="CompanyEmployees.Presentation.xml">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<DocumentationFile>CompanyEmployees.Presentation.xml</DocumentationFile>
 		<OutputPath></OutputPath>
@@ -27,5 +33,4 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<NoWarn>1701;1702;1591</NoWarn>
 	</PropertyGroup>
-
 </Project>
