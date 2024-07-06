@@ -2,6 +2,7 @@
 using Contracts;
 using Entities.Exceptions;
 using Entities.Models;
+using Entities.Responses;
 using Service.Contracts;
 using Shared.DataTransferObjects;
 
@@ -20,7 +21,7 @@ namespace Service
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<CompanyDto>> GetAllCompaniesAsync(bool trackChanges)
+        public async Task<ApiBaseResponse> GetAllCompaniesAsync(bool trackChanges)
         {
             // We do not need this since we added built in Global Error Handling Middleware
             //try
@@ -40,16 +41,21 @@ namespace Service
             var companies = await _repositoryManager.Company.GetAllCompaniesAsync(trackChanges);
             var companiesDto = _mapper.Map<IEnumerable<CompanyDto>>(companies);
 
-            return companiesDto;
+            return new ApiOkResponse<IEnumerable<CompanyDto>>(companiesDto);
         }
 
-        public async Task<CompanyDto> GetCompanyAsync(Guid companyId, bool trackChanges)
+        public async Task<ApiBaseResponse> GetCompanyAsync(Guid companyId, bool trackChanges)
         {
-            var company = await GetCompanyAndCheckIfItExists(companyId, trackChanges);
+            var baseResult = await GetCompanyAndCheckIfItExists(companyId, trackChanges);
 
-            var companyDto = _mapper.Map<CompanyDto>(company);
+            if (!baseResult.Success)
+                return baseResult;
 
-            return companyDto;
+            var company = baseResult as ApiOkResponse<Company>;
+
+            var companyDto = _mapper.Map<CompanyDto>(company.Result);
+
+            return new ApiOkResponse<CompanyDto>(companyDto);
         }
 
         public async Task<CompanyDto> CreateCompanyAsync(CompanyForCreationDto company)
@@ -104,8 +110,12 @@ namespace Service
         {
             var company = await GetCompanyAndCheckIfItExists(companyId, trackChanges);
 
-            _repositoryManager.Company.DeleteCompany(company);
-           await  _repositoryManager.SaveAsync();
+            if (company.Success && company is ApiOkResponse<Company> companyResponse)
+            {
+                _repositoryManager.Company.DeleteCompany(companyResponse.Result);
+                await _repositoryManager.SaveAsync();
+            }
+                  
         }
 
         public async Task UpdateCompanyAsync(Guid companyId, CompanyForUpdateDto companyForUpdate, bool trackChanges)
@@ -116,13 +126,14 @@ namespace Service
             await _repositoryManager.SaveAsync();
         }
 
-        private async Task<Company?> GetCompanyAndCheckIfItExists(Guid companyId, bool trackChanges)
+        private async Task<ApiBaseResponse?> GetCompanyAndCheckIfItExists(Guid companyId, bool trackChanges)
         {
             var company = await _repositoryManager.Company.GetCompanyAsync(companyId, trackChanges);
             //Check if the company is null
             if (company is null)
-                throw new CompanyNotFoundException(companyId);
-            return company;
+                return new CompanyNotFoundResponse(companyId);
+
+            return new ApiOkResponse<Company>(company);
         }
     }
 }

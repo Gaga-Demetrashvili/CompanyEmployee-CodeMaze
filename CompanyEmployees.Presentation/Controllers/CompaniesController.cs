@@ -1,5 +1,7 @@
 ﻿using CompanyEmployees.Presentation.ActionFilters;
+using CompanyEmployees.Presentation.Extensions;
 using CompanyEmployees.Presentation.ModelBinders;
+using Entities.Responses;
 using Marvin.Cache.Headers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +16,7 @@ namespace CompanyEmployees.Presentation.Controllers;
 [Authorize]
 [ApiExplorerSettings(GroupName = "v1")]
 //[ResponseCache(CacheProfileName = "120SecondsDuration")]
-public class CompaniesController : ControllerBase
+public class CompaniesController : ApiControllerBase
 {
     private readonly IServiceManager _service;
 
@@ -44,7 +46,9 @@ public class CompaniesController : ControllerBase
 
         //throw new Exception("Exception");
 
-        var companies = await _service.CompanyService.GetAllCompaniesAsync(trackChanges: false);
+        var baseResult = await _service.CompanyService.GetAllCompaniesAsync(trackChanges: false);
+
+        var companies = baseResult.GetResult<IEnumerable<CompanyDto>>();
 
         return Ok(companies);
     }
@@ -55,7 +59,13 @@ public class CompaniesController : ControllerBase
     [HttpCacheValidation(MustRevalidate = false)]
     public async Task<IActionResult> GetCompany(Guid id)
     {
-        var company = await _service.CompanyService.GetCompanyAsync(id, trackChanges: false);
+        var baseResult = await _service.CompanyService.GetCompanyAsync(id, trackChanges: false);
+
+        if (!baseResult.Success)
+            return ProcessError(baseResult);
+
+        var company = baseResult.GetResult<CompanyDto>();
+
         return Ok(company);
     }
 
@@ -80,13 +90,13 @@ public class CompaniesController : ControllerBase
     }
 
     [HttpGet("collection/({ids})", Name = "CompanyCollection")]
-    public async Task<IActionResult> GetCompanyCollection([ModelBinder(BinderType = typeof(ArrayModelBinder))] 
+    public async Task<IActionResult> GetCompanyCollection([ModelBinder(BinderType = typeof(ArrayModelBinder))]
     IEnumerable<Guid> ids)
     {
         var companies = await _service.CompanyService.GetByIdsAsync(ids, trackChanges: false);
 
         return Ok(companies);
-    }       
+    }
 
     [HttpPost("collection")]
     public async Task<IActionResult> CreateCompanyCollection([FromBody]
